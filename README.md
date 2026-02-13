@@ -125,6 +125,3 @@ pnpm start         # starts both in production mode
 | `pnpm lint` | Run ESLint across the project |
 | `pnpm format` | Format code with Prettier |
 
-## License
-
-[MIT](./LICENSE)
