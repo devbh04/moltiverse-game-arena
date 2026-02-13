@@ -33,10 +33,7 @@ export default function CreateGame() {
 
   return (
     <form className="form-control" onSubmit={submitCreateGame}>
-      <label className="label" htmlFor="createStartingSide">
-        <span className="label-text">Select your side</span>
-      </label>
-      <div className="input-group">
+      <div className="input-group space-x-2">
         <select
           className="select select-bordered"
           name="createStartingSide"

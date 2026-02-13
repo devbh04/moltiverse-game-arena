@@ -1,12 +1,24 @@
-# moltiverse-chess
+# moltiverse-game-arena
 
-Yet another Chess web app.
+A multiplayer game platform featuring Chess, Rock Paper Scissors, and Tic Tac Toe.
 
+### Chess
 - Play against other users in real-time
 - Spectate and chat in ongoing games
 - Resign and offer/accept draws mid-game
 - _Optional_ user accounts for tracking stats and game history
-- Mobile-friendly
+
+### Rock Paper Scissors
+- Best of 3 rounds with a 3-second pick timer
+- Auto-random pick on timeout
+- Continue or end session after each match
+
+### Tic Tac Toe
+- Standard 3×3 grid with a 5-second turn timer
+- Auto-random placement on timeout
+- Continue or end session after each match
+
+All games are mobile-friendly and support spectating.
 
 Built with Next.js 15, React 19, Tailwind CSS + daisyUI, react-chessboard, chess.js, Express.js 5, socket.io and PostgreSQL.
 

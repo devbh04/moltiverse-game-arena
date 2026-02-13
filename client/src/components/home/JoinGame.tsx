@@ -48,7 +48,7 @@ export default function JoinGame() {
 
   return (
     <form
-      className={"input-group" + (notFound ? " tooltip tooltip-error tooltip-open" : "")}
+      className={"input-group space-x-2" + (notFound ? " tooltip tooltip-error tooltip-open" : "")}
       data-tip="error: game not found"
       onSubmit={submitJoinGame}
     >

@@ -14,6 +14,22 @@ import {
     acceptDraw,
     declineDraw
 } from "./game.socket.js";
+import {
+    rpsJoinLobby,
+    rpsJoinAsPlayer,
+    rpsPick,
+    rpsEndSession,
+    rpsContinueSession,
+    rpsLeaveLobby
+} from "./rps.socket.js";
+import {
+    tttJoinLobby,
+    tttJoinAsPlayer,
+    tttPlaceMove,
+    tttEndSession,
+    tttContinueSession,
+    tttLeaveLobby
+} from "./ttt.socket.js";
 
 const socketConnect = (socket: Socket) => {
     const req = socket.request;
@@ -30,9 +46,9 @@ const socketConnect = (socket: Socket) => {
 
     socket.on("disconnect", leaveLobby);
 
+    // Chess
     socket.on("joinLobby", joinLobby);
     socket.on("leaveLobby", leaveLobby);
-
     socket.on("getLatestGame", getLatestGame);
     socket.on("sendMove", sendMove);
     socket.on("joinAsPlayer", joinAsPlayer);
@@ -42,8 +58,25 @@ const socketConnect = (socket: Socket) => {
     socket.on("offerDraw", offerDraw);
     socket.on("acceptDraw", acceptDraw);
     socket.on("declineDraw", declineDraw);
+
+    // RPS
+    socket.on("rpsJoinLobby", rpsJoinLobby);
+    socket.on("rpsJoinAsPlayer", rpsJoinAsPlayer);
+    socket.on("rpsPick", rpsPick);
+    socket.on("rpsEndSession", rpsEndSession);
+    socket.on("rpsContinueSession", rpsContinueSession);
+    socket.on("rpsLeaveLobby", rpsLeaveLobby);
+
+    // TTT
+    socket.on("tttJoinLobby", tttJoinLobby);
+    socket.on("tttJoinAsPlayer", tttJoinAsPlayer);
+    socket.on("tttPlaceMove", tttPlaceMove);
+    socket.on("tttEndSession", tttEndSession);
+    socket.on("tttContinueSession", tttContinueSession);
+    socket.on("tttLeaveLobby", tttLeaveLobby);
 };
 
 export const init = () => {
     io.on("connection", socketConnect);
 };
+

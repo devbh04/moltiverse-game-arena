@@ -40,7 +40,7 @@ export default function PublicGames() {
           ))}
         </div>
       ) : (
-        <div className="bg-base-200 flex w-full items-center justify-center rounded-xl px-8 py-12">
+        <div className="bg-base-200 flex h-80 w-full items-center justify-center rounded-xl px-8 py-12">
           <p className="text-base-content/50 text-sm">No live games right now. Create one above!</p>
         </div>
       )}
