@@ -1,0 +1,33 @@
+{
+    "name": "@chessu/client",
+    "version": "0.0.0",
+    "private": true,
+    "scripts": {
+        "isolated-install": "pnpm -w install:client",
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@tabler/icons-react": "^3.36.1",
+        "chess.js": "^1.4.0",
+        "next": "^15.5.12",
+        "react": "^19.2.4",
+        "react-chessboard": "^4.7.3",
+        "react-dom": "^19.2.4",
+        "socket.io-client": "^4.8.3"
+    },
+    "devDependencies": {
+        "@chessu/types": "workspace:*",
+        "@types/node": "^22.16.0",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "autoprefixer": "^10.4.24",
+        "daisyui": "^4.12.24",
+        "eslint-config-next": "^15.5.12",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^3.4.19",
+        "typescript": "^5.9.3"
+    }
+}

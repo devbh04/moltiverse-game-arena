@@ -1,0 +1,45 @@
+{
+    "name": "@chessu/server",
+    "private": true,
+    "main": "./dist/server.js",
+    "type": "module",
+    "scripts": {
+        "isolated-install": "pnpm -w install:server",
+        "start": "node dist/server.js",
+        "build": "tsc",
+        "dev": "tsc-watch --noClear --onSuccess \"node dist/server.js\""
+    },
+    "dependencies": {
+        "argon2": "^0.44.0",
+        "chess.js": "^1.4.0",
+        "connect-pg-simple": "^10.0.0",
+        "cors": "^2.8.6",
+        "dotenv": "^17.3.1",
+        "express": "^5.2.1",
+        "express-session": "^1.19.0",
+        "nanoid": "^5.1.6",
+        "pg": "^8.18.0",
+        "socket.io": "^4.8.3",
+        "xss": "^1.0.15"
+    },
+    "devDependencies": {
+        "@chessu/types": "workspace:*",
+        "@types/connect-pg-simple": "^7.0.3",
+        "@types/cors": "^2.8.19",
+        "@types/express": "^5.0.6",
+        "@types/express-session": "^1.18.2",
+        "@types/node": "^22.16.0",
+        "@types/pg": "^8.16.0",
+        "@typescript-eslint/eslint-plugin": "^7.18.0",
+        "@typescript-eslint/parser": "^7.18.0",
+        "tsc-watch": "^7.2.0",
+        "typescript": "^5.9.3"
+    },
+    "engines": {
+        "node": ">=20"
+    },
+    "optionalDependencies": {
+        "bufferutil": "^4.1.0",
+        "utf-8-validate": "^6.0.6"
+    }
+}
