@@ -2,6 +2,7 @@
 // TODO: restructure, i could use some help with this :>
 
 import {
+  IconArrowLeft,
   IconChevronLeft,
   IconChevronRight,
   IconCopy,
@@ -585,8 +586,15 @@ export default function GamePage({ initialLobby }: { initialLobby: Game }) {
     <div className="flex w-full h-full flex-col items-center gap-4 px-4 py-4">
       {/* Header row: Player names (left) + Invite (right) */}
       <div className="flex md:flex-row flex-col w-full max-w-5xl items-center justify-between gap-4 rounded-xl bg-base-200 border border-base-300 px-5 py-3">
-        {/* Player names */}
+        {/* Back button */}
         <div className="flex items-center gap-3">
+          <button
+            className="btn btn-ghost btn-sm btn-circle"
+            onClick={() => window.location.href = "/"}
+            title="Back to Home"
+          >
+            <IconArrowLeft size={18} />
+          </button>
           {getPlayerHtml("top")}
           <span className="text-sm text-base-content/40 font-bold">VS</span>
           {getPlayerHtml("bottom")}
