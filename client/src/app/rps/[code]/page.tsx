@@ -17,12 +17,6 @@ const CHOICE_IMAGES: Record<Choice, string> = {
     scissors: "/rpc/scissors.png",
 };
 
-const CHOICE_EMOJI: Record<Choice, string> = {
-    rock: "✊",
-    paper: "✋",
-    scissors: "✌️",
-};
-
 // Generate a consistent color from a string
 function avatarColor(name: string): string {
     const colors = [

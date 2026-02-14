@@ -580,7 +580,7 @@ export default function GamePage({ initialLobby }: { initialLobby: Game }) {
 
   // Bot Battle detection (Agent vs Agent)
   const isBotBattle = isBot(lobby.white?.id) && isBot(lobby.black?.id);
-  const _isSpectating = lobby.side === "s" && lobby.white?.id && lobby.black?.id;
+
 
   return (
     <div className="flex w-full h-full flex-col items-center gap-4 px-4 py-4">
