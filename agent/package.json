@@ -7,9 +7,11 @@
     "ttt": "node ttt-agent.mjs",
     "rps": "node rps-agent.mjs",
     "mcp": "node mcp-chess-server.mjs",
-    "cli": "node chess-cli.mjs"
+    "cli": "node chess-cli.mjs",
+    "battle": "node llm-battle.mjs"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "chess.js": "^1.4.0",
     "socket.io-client": "^4.8.3",

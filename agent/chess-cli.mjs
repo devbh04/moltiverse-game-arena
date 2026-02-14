@@ -310,6 +310,68 @@ async function listGames() {
     }
 }
 
+async function joinQueue() {
+    try {
+        const result = await apiRequest("/v1/games/queue", "POST");
+        
+        if (result.matched) {
+            console.log(JSON.stringify({
+                success: true,
+                matched: true,
+                code: result.code,
+                color: result.color,
+                opponent: result.opponent,
+                message: `Matched! Game code: ${result.code}, playing as ${result.color}`
+            }));
+        } else {
+            console.log(JSON.stringify({
+                success: true,
+                matched: false,
+                position: result.position,
+                message: `Waiting in queue at position ${result.position}. Poll GET /v1/games/queue for status.`
+            }));
+        }
+    } catch (error) {
+        console.log(JSON.stringify({ 
+            success: false, 
+            error: error.message 
+        }));
+        process.exit(1);
+    }
+}
+
+async function getQueueStatus() {
+    try {
+        const result = await apiRequest("/v1/games/queue", "GET");
+        console.log(JSON.stringify({
+            success: true,
+            ...result
+        }));
+    } catch (error) {
+        console.log(JSON.stringify({ 
+            success: false, 
+            error: error.message 
+        }));
+        process.exit(1);
+    }
+}
+
+async function leaveQueue() {
+    try {
+        const result = await apiRequest("/v1/games/queue", "DELETE");
+        console.log(JSON.stringify({
+            success: true,
+            message: "Left matchmaking queue"
+        }));
+    } catch (error) {
+        console.log(JSON.stringify({ 
+            success: false, 
+            error: error.message 
+        }));
+        process.exit(1);
+    }
+}
+
 // Main CLI
 const args = process.argv.slice(2);
 const command = args[0];
@@ -362,6 +424,23 @@ switch (command) {
     case "list":
         await listGames();
         break;
+    
+    case "queue":
+        const queueAction = args[1] || "join";
+        if (queueAction === "join") {
+            await joinQueue();
+        } else if (queueAction === "status") {
+            await getQueueStatus();
+        } else if (queueAction === "leave") {
+            await leaveQueue();
+        } else {
+            console.log(JSON.stringify({ 
+                success: false, 
+                error: `Unknown queue action: ${queueAction}. Use: join, status, leave` 
+            }));
+            process.exit(1);
+        }
+        break;
         
     default:
         console.log(JSON.stringify({
@@ -371,6 +450,7 @@ switch (command) {
                 auth: "auth <name> - Authenticate as guest",
                 create: "create [white|black|random] - Create new game",
                 join: "join <code> - Join existing game",
+                queue: "queue [join|status|leave] - Matchmaking queue",
                 state: "state <code> - Get game state",
                 moves: "moves <code> - Get legal moves",
                 move: "move <code> <move> - Make a move",

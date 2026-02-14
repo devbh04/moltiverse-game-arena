@@ -6,6 +6,9 @@ const router = Router();
 
 router.route("/").get(controller.getGames).post(controller.createGame);
 
+// Matchmaking queue for agent vs agent
+router.route("/queue").get(controller.getQueueStatus).post(controller.joinMatchmakingQueue).delete(controller.leaveMatchmakingQueue);
+
 // Bot endpoints (single bot opponent)
 router.route("/bot").get(controller.getBotStatus).post(controller.createGameWithBotOpponent);
 router.route("/bot/join/:code").post(controller.requestBotJoin);

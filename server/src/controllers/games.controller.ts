@@ -413,3 +413,205 @@ export const checkBotBattle = async (req: Request, res: Response) => {
         res.status(500).json({ error: "Failed to check bot battle" });
     }
 };
+
+// ============== MATCHMAKING QUEUE ==============
+
+// Queue of agents waiting for a match
+interface QueuedAgent {
+    sessionId: string;
+    name: string;
+    queuedAt: number;
+}
+
+const matchmakingQueue: QueuedAgent[] = [];
+
+// Store match results for agents who were matched while waiting
+// Key: sessionId, Value: { code, side, opponent }
+const pendingMatchResults: Map<string, { code: string; side: string; opponent: string }> = new Map();
+
+// Join the matchmaking queue to find an opponent
+export const joinMatchmakingQueue = async (req: Request, res: Response) => {
+    try {
+        if (!req.session.user?.id) {
+            res.status(401).json({ error: "Not authenticated" });
+            return;
+        }
+
+        const sessionId = req.sessionID;
+
+        // First check if this agent was matched while waiting
+        const pendingMatch = pendingMatchResults.get(sessionId);
+        if (pendingMatch) {
+            pendingMatchResults.delete(sessionId);
+            console.log(`[Matchmaking] ${req.session.user.name} retrieved pending match: ${pendingMatch.code}`);
+            res.status(200).json({
+                status: "matched",
+                code: pendingMatch.code,
+                side: pendingMatch.side,
+                opponent: pendingMatch.opponent
+            });
+            return;
+        }
+
+        const user: User = {
+            id: req.session.user.id,
+            name: req.session.user.name,
+            connected: true
+        };
+
+        // Check if there's an open game waiting for opponent
+        const openGame = activeGames.find(g => 
+            !g.winner && 
+            !g.endReason &&
+            ((!g.white && g.black) || (g.white && !g.black))
+        );
+
+        if (openGame) {
+            // Join the open game
+            let joinedAs: "white" | "black";
+            if (!openGame.white) {
+                openGame.white = user;
+                joinedAs = "white";
+            } else {
+                openGame.black = user;
+                joinedAs = "black";
+            }
+
+            // Start the game
+            if (openGame.white && openGame.black && !openGame.startedAt) {
+                openGame.startedAt = Date.now();
+            }
+
+            // Notify via WebSocket
+            io.to(openGame.code!).emit("userJoinedAsPlayer", {
+                name: user.name,
+                side: joinedAs
+            });
+            io.to(openGame.code!).emit("receivedLatestGame", openGame);
+
+            // Remove from queue if they were in it
+            const queueIdx = matchmakingQueue.findIndex(q => q.sessionId === sessionId);
+            if (queueIdx >= 0) matchmakingQueue.splice(queueIdx, 1);
+
+            res.status(200).json({
+                status: "matched",
+                code: openGame.code,
+                side: joinedAs,
+                opponent: joinedAs === "white" ? openGame.black?.name : openGame.white?.name
+            });
+            return;
+        }
+
+        // Check if there's another agent in the queue
+        const waitingAgent = matchmakingQueue.find(q => q.sessionId !== sessionId);
+
+        if (waitingAgent) {
+            // Remove them from queue
+            const idx = matchmakingQueue.indexOf(waitingAgent);
+            matchmakingQueue.splice(idx, 1);
+
+            // Create a new game with both players
+            const game: Game = {
+                code: nanoid(6),
+                host: user,
+                pgn: "",
+                white: user,  // Current user is white
+                black: {      // Waiting agent is black
+                    id: waitingAgent.sessionId,
+                    name: waitingAgent.name,
+                    connected: true
+                },
+                startedAt: Date.now()
+            };
+
+            activeGames.push(game);
+
+            console.log(`[Matchmaking] Matched ${user.name} (white) vs ${waitingAgent.name} (black) - Game ${game.code}`);
+
+            // Store the match result for the waiting agent so they know they were matched
+            pendingMatchResults.set(waitingAgent.sessionId, {
+                code: game.code!,
+                side: "black",
+                opponent: user.name || "Anonymous"
+            });
+
+            res.status(200).json({
+                status: "matched",
+                code: game.code,
+                side: "white",
+                opponent: waitingAgent.name
+            });
+            return;
+        }
+
+        // Check if already in queue
+        const existingQueueEntry = matchmakingQueue.find(q => q.sessionId === sessionId);
+        if (existingQueueEntry) {
+            res.status(200).json({
+                status: "waiting",
+                message: "Already in queue, waiting for opponent...",
+                queuePosition: matchmakingQueue.indexOf(existingQueueEntry) + 1
+            });
+            return;
+        }
+
+        // Add to queue
+        matchmakingQueue.push({
+            sessionId,
+            name: user.name || "Anonymous",
+            queuedAt: Date.now()
+        });
+
+        console.log(`[Matchmaking] ${user.name} joined queue (${matchmakingQueue.length} in queue)`);
+
+        res.status(200).json({
+            status: "waiting",
+            message: "Waiting for opponent...",
+            queuePosition: matchmakingQueue.length
+        });
+
+    } catch (err: unknown) {
+        console.log(err);
+        res.status(500).json({ error: "Failed to join matchmaking queue" });
+    }
+};
+
+// Get current queue status
+export const getQueueStatus = async (req: Request, res: Response) => {
+    try {
+        res.status(200).json({
+            queueLength: matchmakingQueue.length,
+            agents: matchmakingQueue.map(q => ({
+                name: q.name,
+                waitingSeconds: Math.floor((Date.now() - q.queuedAt) / 1000)
+            }))
+        });
+    } catch (err: unknown) {
+        console.log(err);
+        res.status(500).json({ error: "Failed to get queue status" });
+    }
+};
+
+// Leave the matchmaking queue
+export const leaveMatchmakingQueue = async (req: Request, res: Response) => {
+    try {
+        if (!req.session.user?.id) {
+            res.status(401).json({ error: "Not authenticated" });
+            return;
+        }
+
+        const sessionId = req.sessionID;
+        const idx = matchmakingQueue.findIndex(q => q.sessionId === sessionId);
+        
+        if (idx >= 0) {
+            matchmakingQueue.splice(idx, 1);
+            res.status(200).json({ success: true, message: "Left queue" });
+        } else {
+            res.status(200).json({ success: true, message: "Not in queue" });
+        }
+    } catch (err: unknown) {
+        console.log(err);
+        res.status(500).json({ error: "Failed to leave queue" });
+    }
+};
+
