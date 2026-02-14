@@ -1,6 +1,13 @@
 import pg from "pg";
 
-export const db = new pg.Pool();
+export const db = new pg.Pool(
+    process.env.DATABASE_URL
+        ? {
+            connectionString: process.env.DATABASE_URL,
+            ssl: { rejectUnauthorized: false },
+        }
+        : undefined // falls back to PGHOST, PGUSER, etc. env vars for local dev
+);
 
 export const INIT_TABLES = /* sql */ `
     CREATE TABLE IF NOT EXISTS "user" (
