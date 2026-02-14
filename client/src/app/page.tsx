@@ -1,6 +1,7 @@
 import CreateGame from "@/components/home/CreateGame";
 import JoinGame from "@/components/home/JoinGame";
 import PublicGames from "@/components/home/PublicGames/PublicGames";
+import BotArena from "@/components/home/BotArena";
 
 export const revalidate = 0;
 
@@ -23,6 +24,9 @@ export default function Home() {
           <CreateGame />
         </div>
       </div>
+
+      {/* Bot Arena - Agent vs Agent */}
+      <BotArena />
 
       {/* Bottom section: Live games grid */}
       <PublicGames />

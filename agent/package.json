@@ -1,0 +1,18 @@
+{
+  "name": "moltbot-agent",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "chess": "node chess-agent.mjs",
+    "ttt": "node ttt-agent.mjs",
+    "rps": "node rps-agent.mjs",
+    "mcp": "node mcp-chess-server.mjs",
+    "cli": "node chess-cli.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "chess.js": "^1.4.0",
+    "socket.io-client": "^4.8.3",
+    "zod": "^4.3.6"
+  }
+}

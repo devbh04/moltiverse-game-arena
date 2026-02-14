@@ -30,8 +30,14 @@ import { io } from "socket.io-client";
 import { lobbyReducer, squareReducer } from "./reducers";
 import { initSocket } from "./socketEvents";
 import { syncPgn, syncSide } from "./utils";
+import { requestBotJoin } from "@/lib/game";
 
 const socket = io(API_URL, { withCredentials: true, autoConnect: false });
+
+// Helper to check if a player is a bot
+function isBot(id?: string | number): boolean {
+  return typeof id === "string" && id.startsWith("bot-");
+}
 
 export default function GamePage({ initialLobby }: { initialLobby: Game }) {
   const session = useContext(SessionContext);
@@ -57,6 +63,7 @@ export default function GamePage({ initialLobby }: { initialLobby: Game }) {
   const [navIndex, setNavIndex] = useState<number | null>(null);
 
   const [playBtnLoading, setPlayBtnLoading] = useState(false);
+  const [botBtnLoading, setBotBtnLoading] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [chatMessages, setChatMessages] = useState<Message[]>([
     {
@@ -569,23 +576,56 @@ export default function GamePage({ initialLobby }: { initialLobby: Game }) {
   const opponentDrawOffer =
     (lobby.side === "w" && lobby.drawOffer === "black") ||
     (lobby.side === "b" && lobby.drawOffer === "white");
+  
+  // Bot Battle detection (Agent vs Agent)
+  const isBotBattle = isBot(lobby.white?.id) && isBot(lobby.black?.id);
+  const isSpectating = lobby.side === "s" && lobby.white?.id && lobby.black?.id;
 
   return (
     <div className="flex w-full flex-wrap justify-center gap-6 px-4 py-4 lg:gap-10 2xl:gap-16">
       <div className="relative h-min">
+        {/* Bot Battle Spectator Banner */}
+        {isBotBattle && (
+          <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-2 px-4 text-center">
+            <div className="flex items-center justify-center gap-2">
+              <span className="font-bold">Bot Battle</span>
+              <span className="badge badge-ghost badge-sm">LIVE</span>
+            </div>
+            <div className="text-xs opacity-80 mt-1">
+              {lobby.white?.name} vs {lobby.black?.name} — Spectating
+            </div>
+          </div>
+        )}
+
         {/* overlay */}
         {(!lobby.white?.id || !lobby.black?.id) && (
           <div className="absolute bottom-0 right-0 top-0 z-10 flex h-full w-full items-center justify-center bg-black bg-opacity-70">
-            <div className="bg-base-200 flex w-full items-center justify-center gap-4 px-2 py-4">
-              Waiting for opponent.
-              {session?.user?.id !== lobby.white?.id && session?.user?.id !== lobby.black?.id && (
-                <button
-                  className={"btn btn-secondary" + (playBtnLoading ? " btn-disabled" : "")}
-                  onClick={clickPlay}
-                >
-                  Play as {lobby.white?.id ? "black" : "white"}
-                </button>
-              )}
+            <div className="bg-base-200 flex w-full flex-col items-center justify-center gap-4 px-2 py-4">
+              <span>Waiting for opponent.</span>
+              <div className="flex gap-2">
+                {session?.user?.id !== lobby.white?.id && session?.user?.id !== lobby.black?.id && (
+                  <button
+                    className={"btn btn-secondary" + (playBtnLoading ? " btn-disabled" : "")}
+                    onClick={clickPlay}
+                  >
+                    Play as {lobby.white?.id ? "black" : "white"}
+                  </button>
+                )}
+                {(session?.user?.id === lobby.white?.id || session?.user?.id === lobby.black?.id) && (
+                  <button
+                    className={"btn btn-accent" + (botBtnLoading ? " loading" : "")}
+                    onClick={async () => {
+                      setBotBtnLoading(true);
+                      const result = await requestBotJoin(lobby.code || "");
+                      if (!result?.success) {
+                        setBotBtnLoading(false);
+                      }
+                    }}
+                  >
+                    Play vs Bot
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

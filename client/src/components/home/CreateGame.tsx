@@ -5,11 +5,12 @@ import type { FormEvent } from "react";
 import { useContext, useState } from "react";
 
 import { SessionContext } from "@/context/session";
-import { createGame } from "@/lib/game";
+import { createGame, createGameWithBot } from "@/lib/game";
 
 export default function CreateGame() {
   const session = useContext(SessionContext);
   const [buttonLoading, setButtonLoading] = useState(false);
+  const [botButtonLoading, setBotButtonLoading] = useState(false);
   const router = useRouter();
 
   async function submitCreateGame(e: FormEvent<HTMLFormElement>) {
@@ -27,6 +28,24 @@ export default function CreateGame() {
       router.push(`/${game.code}`);
     } else {
       setButtonLoading(false);
+      // TODO: Show error message
+    }
+  }
+
+  async function handlePlayVsBot(e: React.MouseEvent) {
+    e.preventDefault();
+    if (!session?.user?.id) return;
+    setBotButtonLoading(true);
+
+    const sideSelect = document.getElementById("createStartingSide") as HTMLSelectElement;
+    const startingSide = sideSelect?.value || "random";
+
+    const game = await createGameWithBot(startingSide);
+
+    if (game) {
+      router.push(`/${game.code}`);
+    } else {
+      setBotButtonLoading(false);
       // TODO: Show error message
     }
   }
@@ -52,6 +71,17 @@ export default function CreateGame() {
           type="submit"
         >
           Create
+        </button>
+        <button
+          className={
+            "btn btn-secondary" +
+            (botButtonLoading ? " loading" : "") +
+            (!session?.user?.id ? " btn-disabled text-base-content" : "")
+          }
+          type="button"
+          onClick={handlePlayVsBot}
+        >
+          vs Bot
         </button>
       </div>
     </form>
