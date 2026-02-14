@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useContext, useTransition } from "react";
 import { Chess } from "chess.js";
-import { Chessboard } from "react-chessboard";
 import type { Game } from "@chessu/types";
 
 import { SessionContext } from "@/context/session";
