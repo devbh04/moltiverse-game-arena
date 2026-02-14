@@ -17,6 +17,23 @@ const CHOICE_IMAGES: Record<Choice, string> = {
     scissors: "/rpc/scissors.png",
 };
 
+const CHOICE_EMOJI: Record<Choice, string> = {
+    rock: "✊",
+    paper: "✋",
+    scissors: "✌️",
+};
+
+// Generate a consistent color from a string
+function avatarColor(name: string): string {
+    const colors = [
+        "bg-blue-500", "bg-pink-500", "bg-green-500", "bg-purple-500",
+        "bg-orange-500", "bg-teal-500", "bg-indigo-500", "bg-rose-500",
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+}
+
 export default function RPSGamePage() {
     const { code } = useParams<{ code: string }>();
     const session = useContext(SessionContext);
@@ -179,8 +196,8 @@ export default function RPSGamePage() {
             <div className="flex flex-col items-center justify-center gap-6 py-20">
                 <h1 className="text-3xl font-bold">Session Ended</h1>
                 <p className="text-base-content/60">The game session has been ended.</p>
-                <button className="btn btn-primary" onClick={() => router.push("/rps")}>
-                    Back to RPS Lobby
+                <button className="btn btn-primary" onClick={() => router.push("/")}>
+                    Back to Home
                 </button>
             </div>
         );
@@ -196,92 +213,172 @@ export default function RPSGamePage() {
 
     const waitingForOpponent = !game.player2;
     const isPlaying = myRole === "p1" || myRole === "p2";
+    const p1Name = game.player1?.name || "???";
+    const p2Name = game.player2?.name || "Waiting...";
+    const timerPercent = (timer / 3) * 100;
 
     return (
-        <div className="flex w-full flex-col items-center gap-6 px-4 py-8">
-            <h1 className="text-2xl font-bold">🪨 Rock Paper Scissors</h1>
-            <p className="font-mono text-sm text-base-content/60">Room: {code}</p>
+        <div className="flex w-full flex-col items-center gap-8 px-4 py-10 max-w-2xl mx-auto">
 
-            {/* Players */}
-            <div className="flex items-center gap-8">
-                <div className="flex flex-col items-center">
-                    <span className="font-bold">{game.player1?.name || "???"}</span>
-                    <span className="badge badge-primary mt-1">P1</span>
-                    <span className="text-2xl font-bold mt-1">{game.scores.p1}</span>
+            {/* ─── Header: Live badge + Title + Room ─── */}
+            <div className="flex flex-col items-center gap-3">
+                <div className="badge badge-outline gap-2 px-4 py-3">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span className="text-xs font-semibold tracking-wider uppercase">Live Match</span>
                 </div>
-                <span className="text-xl font-bold text-base-content/40">vs</span>
-                <div className="flex flex-col items-center">
-                    <span className="font-bold">{game.player2?.name || "Waiting..."}</span>
-                    <span className="badge badge-secondary mt-1">P2</span>
-                    <span className="text-2xl font-bold mt-1">{game.scores.p2}</span>
+                <h1 className="text-3xl sm:text-4xl font-extrabold flex items-center gap-3">
+                    <img src="/rpc/rock.png" alt="" className="h-10 w-10 object-contain" />
+                    Rock Paper Scissors
+                </h1>
+                <p className="text-sm text-base-content/50">
+                    Room: <span className="badge badge-neutral badge-sm font-mono">{code}</span>
+                </p>
+            </div>
+
+            {/* ─── VS Arena ─── */}
+            <div className="w-full">
+                <p className="text-center text-sm font-bold text-base-content/40 tracking-widest mb-6">VS</p>
+
+                <div className="flex items-center justify-between gap-4">
+                    {/* Player 1 */}
+                    <div className="flex flex-col items-center gap-2 flex-1">
+                        <div className="flex items-center gap-3">
+                            <div className="flex flex-col items-end">
+                                <span className="font-bold text-sm sm:text-base">{p1Name}</span>
+                                <span className="badge badge-ghost badge-xs mt-0.5">P1</span>
+                            </div>
+                            <div className={`w-12 h-12 rounded-full ${avatarColor(p1Name)} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
+                                {p1Name.charAt(0).toUpperCase()}
+                            </div>
+                        </div>
+                        <span className="text-4xl font-black">{game.scores.p1}</span>
+                        {locked.p1 && <span className="badge badge-success badge-sm">Locked</span>}
+                    </div>
+
+                    {/* Center: Timer */}
+                    <div className="flex flex-col items-center gap-3">
+                        {game.roundState === "picking" ? (
+                            <div
+                                className="radial-progress text-primary font-bold text-xl"
+                                style={{ "--value": timerPercent, "--size": "5rem", "--thickness": "4px" } as React.CSSProperties}
+                                role="progressbar"
+                            >
+                                {timer}s
+                            </div>
+                        ) : (
+                            <div className="w-20 h-20 rounded-full border-4 border-base-300 flex items-center justify-center">
+                                <span className="text-base-content/30 text-sm font-bold">
+                                    {game.roundState === "waiting" ? "⏳" : "✓"}
+                                </span>
+                            </div>
+                        )}
+                        <p className="text-xs font-semibold text-base-content/40 tracking-widest uppercase">
+                            Round {game.round} of 3
+                        </p>
+                    </div>
+
+                    {/* Player 2 */}
+                    <div className="flex flex-col items-center gap-2 flex-1">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-12 h-12 rounded-full ${game.player2 ? avatarColor(p2Name) : "bg-base-300"} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
+                                {game.player2 ? p2Name.charAt(0).toUpperCase() : "?"}
+                            </div>
+                            <div className="flex flex-col items-start">
+                                <span className="font-bold text-sm sm:text-base">{p2Name}</span>
+                                <span className="badge badge-ghost badge-xs mt-0.5">P2</span>
+                            </div>
+                        </div>
+                        <span className="text-4xl font-black">{game.scores.p2}</span>
+                        {locked.p2 && <span className="badge badge-success badge-sm">Locked</span>}
+                    </div>
                 </div>
             </div>
 
-            {/* Join button for spectators */}
+            {/* ─── Join button for spectators ─── */}
             {myRole === "spectator" && waitingForOpponent && (
-                <button className="btn btn-primary" onClick={handleJoinAsPlayer}>
+                <button className="btn btn-primary btn-wide" onClick={handleJoinAsPlayer}>
                     Join as Player 2
                 </button>
             )}
 
-            {/* Round info */}
-            {game.roundState === "picking" && (
-                <div className="flex flex-col items-center gap-2">
-                    <p className="text-lg font-semibold">Round {game.round} of 3</p>
-                    <div className="radial-progress text-primary" style={{ "--value": (timer / 3) * 100, "--size": "4rem" } as React.CSSProperties}>
-                        {timer}s
-                    </div>
-                    <div className="flex gap-2">
-                        {locked.p1 && <span className="badge badge-success">P1 Locked</span>}
-                        {locked.p2 && <span className="badge badge-success">P2 Locked</span>}
-                    </div>
+            {/* ─── Waiting state ─── */}
+            {waitingForOpponent && game.roundState === "waiting" && isPlaying && (
+                <div className="flex flex-col items-center gap-3 py-4">
+                    <span className="loading loading-dots loading-lg"></span>
+                    <p className="text-base-content/60">Waiting for an opponent to join...</p>
+                    <p className="text-sm text-base-content/40">
+                        Share code: <span className="badge badge-neutral font-mono">{code}</span>
+                    </p>
                 </div>
             )}
 
-            {/* Pick buttons */}
+            {/* ─── Choice cards ─── */}
             {isPlaying && game.roundState === "picking" && (
-                <div className="flex gap-6">
-                    {CHOICES.map((choice) => (
-                        <button
-                            key={choice}
-                            className={
-                                "btn btn-lg h-auto flex-col gap-2 p-4" +
-                                (myPick === choice ? " btn-primary ring-4 ring-primary/50" : " btn-ghost")
-                            }
-                            onClick={() => handlePick(choice)}
-                            disabled={!!myPick}
-                        >
-                            <Image src={CHOICE_IMAGES[choice]} alt={choice} width={64} height={64} />
-                            <span className="capitalize text-sm">{choice}</span>
-                        </button>
-                    ))}
+                <div className="w-full flex flex-col items-center gap-4">
+                    <p className="text-sm text-base-content/40">Make your choice to lock in</p>
+                    <div className="grid grid-cols-3 gap-4 w-full max-w-md">
+                        {CHOICES.map((choice) => (
+                            <button
+                                key={choice}
+                                className={
+                                    "flex flex-col items-center gap-3 rounded-2xl border-2 p-6 transition-all " +
+                                    (myPick === choice
+                                        ? "border-primary bg-primary/10 shadow-lg shadow-primary/20 scale-105"
+                                        : "border-base-300 bg-base-100 hover:border-base-content/20 hover:shadow-md hover:scale-[1.02]") +
+                                    (myPick && myPick !== choice ? " opacity-40" : "")
+                                }
+                                onClick={() => handlePick(choice)}
+                                disabled={!!myPick}
+                            >
+                                <Image
+                                    src={CHOICE_IMAGES[choice]}
+                                    alt={choice}
+                                    width={72}
+                                    height={72}
+                                    className="object-contain"
+                                />
+                                <span className="capitalize font-semibold text-sm">{choice}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 
-            {/* Round result */}
+            {/* ─── Spectator view during picking ─── */}
+            {myRole === "spectator" && game.roundState === "picking" && (
+                <div className="flex flex-col items-center gap-3 py-4">
+                    <p className="text-base-content/50 text-sm">Players are picking...</p>
+                    <div className="flex gap-3">
+                        {locked.p1 && <span className="badge badge-success gap-1">P1 Locked ✓</span>}
+                        {locked.p2 && <span className="badge badge-success gap-1">P2 Locked ✓</span>}
+                    </div>
+                </div>
+            )}
+
+            {/* ─── Round result ─── */}
             {roundResult && (
-                <div className="card bg-base-200 p-6">
-                    <div className="flex items-center gap-8">
-                        <div className="flex flex-col items-center gap-2">
+                <div className="w-full max-w-md bg-base-200 rounded-2xl border border-base-300 p-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex flex-col items-center gap-2 flex-1">
                             <span className="text-sm font-semibold">{game.player1?.name}</span>
                             <Image
                                 src={CHOICE_IMAGES[roundResult.p1Pick as Choice]}
                                 alt={roundResult.p1Pick}
-                                width={80}
-                                height={80}
+                                width={72}
+                                height={72}
                             />
-                            <span className="capitalize">{roundResult.p1Pick}</span>
+                            <span className="capitalize text-xs text-base-content/60">{roundResult.p1Pick}</span>
                         </div>
-                        <span className="text-2xl font-bold">vs</span>
-                        <div className="flex flex-col items-center gap-2">
+                        <span className="text-2xl font-bold text-base-content/30">VS</span>
+                        <div className="flex flex-col items-center gap-2 flex-1">
                             <span className="text-sm font-semibold">{game.player2?.name}</span>
                             <Image
                                 src={CHOICE_IMAGES[roundResult.p2Pick as Choice]}
                                 alt={roundResult.p2Pick}
-                                width={80}
-                                height={80}
+                                width={72}
+                                height={72}
                             />
-                            <span className="capitalize">{roundResult.p2Pick}</span>
+                            <span className="capitalize text-xs text-base-content/60">{roundResult.p2Pick}</span>
                         </div>
                     </div>
                     <p className="mt-4 text-center text-lg font-bold">
@@ -294,18 +391,7 @@ export default function RPSGamePage() {
                 </div>
             )}
 
-            {/* Waiting state */}
-            {waitingForOpponent && game.roundState === "waiting" && isPlaying && (
-                <div className="flex flex-col items-center gap-2">
-                    <span className="loading loading-dots loading-lg"></span>
-                    <p>Waiting for an opponent to join...</p>
-                    <p className="font-mono text-sm text-base-content/50">
-                        Share code: <span className="badge badge-neutral">{code}</span>
-                    </p>
-                </div>
-            )}
-
-            {/* Game over modal */}
+            {/* ─── Game over modal ─── */}
             {gameOver && (
                 <div className="modal modal-open">
                     <div className="modal-box text-center">

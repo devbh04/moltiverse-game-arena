@@ -52,7 +52,7 @@ export default function CreateGame() {
 
   return (
     <form className="form-control" onSubmit={submitCreateGame}>
-      <div className="input-group space-x-2">
+      <div className="input-group flex space-x-2">
         <select
           className="select select-bordered"
           name="createStartingSide"

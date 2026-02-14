@@ -135,8 +135,8 @@ export default function TTTGamePage() {
             <div className="flex flex-col items-center justify-center gap-6 py-20">
                 <h1 className="text-3xl font-bold">Session Ended</h1>
                 <p className="text-base-content/60">The game session has been ended.</p>
-                <button className="btn btn-primary" onClick={() => router.push("/ttt")}>
-                    Back to TTT Lobby
+                <button className="btn btn-primary" onClick={() => router.push("/")}>
+                    Back to Home
                 </button>
             </div>
         );
@@ -153,48 +153,121 @@ export default function TTTGamePage() {
     const waitingForOpponent = !game.playerO;
     const isPlaying = myRole === "X" || myRole === "O";
     const isMyTurn = game.turn === myRole;
+    const xName = game.playerX?.name || "???";
+    const oName = game.playerO?.name || "Waiting...";
+    const currentTurnName = game.turn === "X" ? xName : oName;
+    const timerPercent = (timer / 5) * 100;
 
     return (
-        <div className="flex w-full flex-col items-center gap-6 px-4 py-8">
-            <h1 className="text-2xl font-bold">❌ Tic Tac Toe</h1>
-            <p className="font-mono text-sm text-base-content/60">Room: {code}</p>
+        <div className="flex w-full flex-col items-center gap-8 px-4 py-10 max-w-2xl mx-auto">
 
-            {/* Players */}
-            <div className="flex items-center gap-8">
-                <div className="flex flex-col items-center">
-                    <span className="font-bold">{game.playerX?.name || "???"}</span>
-                    <span className="badge badge-primary mt-1">X</span>
-                </div>
-                <span className="text-xl font-bold text-base-content/40">vs</span>
-                <div className="flex flex-col items-center">
-                    <span className="font-bold">{game.playerO?.name || "Waiting..."}</span>
-                    <span className="badge badge-secondary mt-1">O</span>
+            {/* ─── Header: Title + Room ─── */}
+            <div className="flex flex-col items-center gap-2">
+                <h1 className="text-3xl sm:text-4xl font-extrabold flex items-center gap-3">
+                    <img src="/ttt/X.png" alt="" className="h-8 w-8 object-contain" />
+                    Tic Tac Toe
+                </h1>
+                <p className="text-xs text-base-content/40 font-mono tracking-widest uppercase">
+                    Room: {code}
+                </p>
+            </div>
+
+            {/* ─── VS Card ─── */}
+            <div className="w-full bg-base-200 rounded-2xl border border-base-300 p-6 relative overflow-hidden">
+                {/* Active player indicator line */}
+                {!waitingForOpponent && !game.winner && (
+                    <div
+                        className="absolute top-0 h-1 bg-primary transition-all duration-300"
+                        style={{
+                            left: game.turn === "X" ? "0%" : "50%",
+                            width: "50%",
+                        }}
+                    />
+                )}
+
+                <div className="flex items-center justify-between">
+                    {/* Player X */}
+                    <div className={
+                        "flex flex-col items-center gap-2 flex-1 transition-opacity " +
+                        (!waitingForOpponent && game.turn !== "X" && !game.winner ? "opacity-40" : "")
+                    }>
+                        <div className="relative">
+                            <div className={
+                                "w-14 h-14 rounded-full flex items-center justify-center shadow-lg " +
+                                "border-2 border-blue-500 bg-blue-500/10"
+                            }>
+                                <Image src="/ttt/X.png" alt="X" width={32} height={32} />
+                            </div>
+                            {myRole === "X" && (
+                                <span className="absolute -bottom-1 -right-1 badge badge-success badge-xs px-1 text-[10px]">YOU</span>
+                            )}
+                        </div>
+                        <span className="font-bold text-sm">{xName}</span>
+                        <span className="text-xs text-base-content/40 font-mono">Player X</span>
+                    </div>
+
+                    {/* VS */}
+                    <span className="text-xl font-bold text-base-content/20 italic mx-4">VS</span>
+
+                    {/* Player O */}
+                    <div className={
+                        "flex flex-col items-center gap-2 flex-1 transition-opacity " +
+                        (!waitingForOpponent && game.turn !== "O" && !game.winner ? "opacity-40" : "")
+                    }>
+                        <div className="relative">
+                            <div className={
+                                "w-14 h-14 rounded-full flex items-center justify-center shadow-lg " +
+                                (game.playerO
+                                    ? "border-2 border-red-500 bg-red-500/10"
+                                    : "border-2 border-base-300 bg-base-300")
+                            }>
+                                <Image src="/ttt/O.png" alt="O" width={32} height={32} className={game.playerO ? "" : "opacity-30"} />
+                            </div>
+                            {myRole === "O" && (
+                                <span className="absolute -bottom-1 -right-1 badge badge-success badge-xs px-1 text-[10px]">YOU</span>
+                            )}
+                        </div>
+                        <span className="font-bold text-sm">{oName}</span>
+                        <span className="text-xs text-base-content/40 font-mono">Player O</span>
+                    </div>
                 </div>
             </div>
 
-            {/* Join button */}
+            {/* ─── Join button ─── */}
             {myRole === "spectator" && waitingForOpponent && (
-                <button className="btn btn-primary" onClick={handleJoinAsPlayer}>
+                <button className="btn btn-primary btn-wide" onClick={handleJoinAsPlayer}>
                     Join as Player O
                 </button>
             )}
 
-            {/* Turn info + timer */}
+            {/* ─── Waiting state ─── */}
+            {waitingForOpponent && isPlaying && (
+                <div className="flex flex-col items-center gap-3 py-4">
+                    <span className="loading loading-dots loading-lg"></span>
+                    <p className="text-base-content/60">Waiting for an opponent to join...</p>
+                    <p className="text-sm text-base-content/40">
+                        Share code: <span className="badge badge-neutral font-mono">{code}</span>
+                    </p>
+                </div>
+            )}
+
+            {/* ─── Turn indicator + Timer ─── */}
             {!game.winner && !waitingForOpponent && (
-                <div className="flex flex-col items-center gap-2">
-                    <p className="text-lg">
+                <div className="flex flex-col items-center gap-3">
+                    <p className="text-sm">
                         {isMyTurn ? (
-                            <span className="font-bold text-success">Your turn ({myRole})</span>
+                            <span className="font-bold text-primary">Your turn ({myRole})</span>
                         ) : (
                             <span className="text-base-content/60">
-                                {game.turn === "X" ? game.playerX?.name : game.playerO?.name}&apos;s turn ({game.turn})
+                                <span className="font-semibold text-primary">{currentTurnName}&apos;s</span> turn ({game.turn})
                             </span>
                         )}
                     </p>
                     {timer > 0 && (
                         <div
-                            className="radial-progress text-primary"
-                            style={{ "--value": (timer / 5) * 100, "--size": "3.5rem" } as React.CSSProperties}
+                            className="radial-progress text-primary font-bold text-lg"
+                            style={{ "--value": timerPercent, "--size": "4rem", "--thickness": "3px" } as React.CSSProperties}
+                            role="progressbar"
                         >
                             {timer}s
                         </div>
@@ -202,44 +275,35 @@ export default function TTTGamePage() {
                 </div>
             )}
 
-            {/* Waiting */}
-            {waitingForOpponent && isPlaying && (
-                <div className="flex flex-col items-center gap-2">
-                    <span className="loading loading-dots loading-lg"></span>
-                    <p>Waiting for an opponent to join...</p>
-                    <p className="font-mono text-sm text-base-content/50">
-                        Share code: <span className="badge badge-neutral">{code}</span>
-                    </p>
+            {/* ─── Board ─── */}
+            <div className="bg-base-200 rounded-2xl border border-base-300 p-4">
+                <div className="grid grid-cols-3 gap-3">
+                    {game.board.map((cell, i) => (
+                        <button
+                            key={i}
+                            className={
+                                "flex items-center justify-center rounded-xl w-28 h-28 sm:w-32 sm:h-32 text-5xl font-bold transition-all " +
+                                (cell
+                                    ? "bg-base-300 cursor-default"
+                                    : isMyTurn && !game.winner
+                                        ? "bg-base-300 hover:bg-base-content/10 cursor-pointer hover:scale-[1.03]"
+                                        : "bg-base-300 cursor-default")
+                            }
+                            onClick={() => handlePlace(i)}
+                            disabled={!!cell || !isMyTurn || !!game.winner || waitingForOpponent}
+                        >
+                            {cell === "X" && (
+                                <Image src="/ttt/X.png" alt="X" width={64} height={64} />
+                            )}
+                            {cell === "O" && (
+                                <Image src="/ttt/O.png" alt="O" width={64} height={64} />
+                            )}
+                        </button>
+                    ))}
                 </div>
-            )}
-
-            {/* Board */}
-            <div className="grid grid-cols-3 gap-2">
-                {game.board.map((cell, i) => (
-                    <button
-                        key={i}
-                        className={
-                            "flex h-24 w-24 items-center justify-center rounded-lg text-4xl font-bold transition-all " +
-                            (cell
-                                ? "bg-base-200 cursor-default"
-                                : isMyTurn && !game.winner
-                                    ? "bg-base-200 hover:bg-primary/20 cursor-pointer"
-                                    : "bg-base-200 cursor-default")
-                        }
-                        onClick={() => handlePlace(i)}
-                        disabled={!!cell || !isMyTurn || !!game.winner}
-                    >
-                        {cell === "X" && (
-                            <Image src="/ttt/X.png" alt="X" width={56} height={56} />
-                        )}
-                        {cell === "O" && (
-                            <Image src="/ttt/O.png" alt="O" width={56} height={56} />
-                        )}
-                    </button>
-                ))}
             </div>
 
-            {/* Game over modal */}
+            {/* ─── Game over modal ─── */}
             {gameOver && (
                 <div className="modal modal-open">
                     <div className="modal-box text-center">

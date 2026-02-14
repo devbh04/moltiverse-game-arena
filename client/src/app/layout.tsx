@@ -38,11 +38,11 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="overflow-x-hidden" suppressHydrationWarning>
-      <body className="overflow-x-hidden" suppressHydrationWarning>
+      <body className="min-h-screen flex flex-col overflow-x-hidden" suppressHydrationWarning>
         <ContextProvider>
           <Header />
 
-          <main className="mx-1 flex min-h-[70vh] justify-center md:mx-16 lg:mx-40">
+          <main className="mx-1 flex flex-1 justify-center md:mx-16 lg:mx-40">
             {children}
           </main>
 
